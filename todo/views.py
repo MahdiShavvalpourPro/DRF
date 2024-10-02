@@ -9,10 +9,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from todo.models import Todo
-from .serilizers import TodoSerializer
+from .serilizers import TodoSerializer, UserSerializer
 
 from rest_framework import mixins, generics
 from rest_framework import viewsets
+
+from django.contrib.auth import get_user_model
 
 
 # Create your views here.
@@ -151,5 +153,16 @@ class TodosViewSetApiView(viewsets.ModelViewSet):
     queryset = Todo.objects.order_by('priority').all()
     serializer_class = TodoSerializer
 
+
+# endregion
+
+
+# region User
+user = get_user_model()
+
+
+class UserViewSetApi(viewsets.ModelViewSet):
+    queryset = user.objects.order_by('first_name').all()
+    serializer_class = UserSerializer
 
 # endregion

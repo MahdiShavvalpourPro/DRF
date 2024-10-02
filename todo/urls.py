@@ -6,6 +6,9 @@ from todo.views import todo_detail_view, ManageTodos
 router = DefaultRouter()
 router.register('', views.TodosViewSetApiView)
 
+user_router = DefaultRouter()
+user_router.register('', views.UserViewSetApi)
+
 
 urlpatterns = [
     path('', views.all_todos),
@@ -18,4 +21,5 @@ urlpatterns = [
     path('generics/', views.TodosGenericCreateListApiView.as_view()),
     path('generics/<pk>', views.TodosGenericUpdateDestroyApiView.as_view()),
     path('viewsets/', include(router.urls)),
+    path('userviewset', include(user_router.urls))
 ]
