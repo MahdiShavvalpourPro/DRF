@@ -1,3 +1,5 @@
+#region imports
+
 from http.client import responses
 from rest_framework import status
 from rest_framework import viewsets
@@ -15,6 +17,8 @@ from rest_framework import mixins, generics
 from rest_framework import viewsets
 
 from django.contrib.auth import get_user_model
+
+#endregion
 
 
 # Create your views here.
