@@ -1,5 +1,6 @@
-#region imports
+# region imports
 
+from rest_framework_swagger.views import get_swagger_view
 from http.client import responses
 from rest_framework import status
 from rest_framework import viewsets
@@ -10,6 +11,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+
 from todo.models import Todo
 from .serilizers import TodoSerializer, UserSerializer
 
@@ -18,8 +20,14 @@ from rest_framework import viewsets
 
 from django.contrib.auth import get_user_model
 
-#endregion
+from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
+from rest_framework.authentication import BasicAuthentication, TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
 
+
+# endregion
 
 # Create your views here.
 
@@ -53,17 +61,16 @@ def todo_detail_view(request: Request, todo_id: int):
         serialize = TodoSerializer(todo, request.data)
         if serialize.is_valid():
             serialize.save()
-            return responses(serialize.data, status.HTTP_202_ACCEPTED)
+            return Response(serialize.data, status.HTTP_202_ACCEPTED)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
     if request.method == 'DELETE':
         todo.delete()
-        return responses(None, status.HTTP_204_NO_CONTENT)
+        return Response(None, status.HTTP_204_NO_CONTENT)
 
 
 # endregion
-
 
 # region class base view
 
@@ -106,7 +113,6 @@ class ManageTodoDetail(APIView):
 
 # endregion
 
-
 # region Mixin
 
 class TodosListMixinApiView(mixins.CreateModelMixin, ListModelMixin, GenericAPIView):
@@ -134,28 +140,39 @@ class TodosDetailMixinApiView(mixins.RetrieveModelMixin, mixins.UpdateModelMixin
     def delete(self, request: Request, pk: int):
         return self.destroy(request, pk)
 
+
 # endregion
+
+
+class Pagination(PageNumberPagination):
+    page_size = 5
 
 
 # region api by Genercis
 
+
 class TodosGenericCreateListApiView(generics.ListCreateAPIView):
     queryset = Todo.objects.order_by('priority').all()
     serializer_class = TodoSerializer
+    pagination_class = LimitOffsetPagination
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated]
 
 
 class TodosGenericUpdateDestroyApiView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Todo.objects.order_by('priority').all()
     serializer_class = TodoSerializer
 
+
 # endregion
 
-
 # region View Set Api
+
 
 class TodosViewSetApiView(viewsets.ModelViewSet):
     queryset = Todo.objects.order_by('priority').all()
     serializer_class = TodoSerializer
+    pagination_class = Pagination
 
 
 # endregion
@@ -169,4 +186,23 @@ class UserViewSetApi(viewsets.ModelViewSet):
     queryset = user.objects.order_by('first_name').all()
     serializer_class = UserSerializer
 
+
 # endregion
+
+# region Make a new token
+
+
+class CustomAuthToken(APIView):
+    def post(setlf, request, *args, **kwargs):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(username=username, password=password)
+        if user is not Null:
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({'token': Token.key})
+        return Response({'error': 'Invalid credentials'}, status=400)
+
+# endregion
+
+
+
